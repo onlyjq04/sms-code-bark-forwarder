@@ -7,7 +7,7 @@ object SmsForwarder {
         val config = AppPrefs.read(context)
         if (!config.enabled) return
 
-        val code = VerificationCodeExtractor.extract(body) ?: return
+        val code = VerificationCodeExtractor.extract(body, config.verificationKeywords) ?: return
         val endpoint = BarkEndpoint.resolve(config.server, config.deviceKey)
 
         if (endpoint.deviceKey.isBlank()) {

@@ -16,6 +16,7 @@ import android.widget.TextView
 class MainActivity : Activity() {
     private lateinit var serverInput: EditText
     private lateinit var deviceKeyInput: EditText
+    private lateinit var keywordsInput: EditText
     private lateinit var enabledSwitch: Switch
     private lateinit var statusText: TextView
     private lateinit var logsText: TextView
@@ -65,6 +66,15 @@ class MainActivity : Activity() {
             setSingleLine(true)
         }
         root.addView(deviceKeyInput, matchWrapParams())
+
+        root.addView(label("验证码关键词（每行一个，也可用逗号分隔）"))
+        keywordsInput = EditText(this).apply {
+            hint = "默认包含中英文常见词，可按需添加其他语言"
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            minLines = 4
+            gravity = android.view.Gravity.TOP
+        }
+        root.addView(keywordsInput, matchWrapParams())
 
         enabledSwitch = Switch(this).apply {
             text = "启用转发"
@@ -121,6 +131,7 @@ class MainActivity : Activity() {
         val config = AppPrefs.read(this)
         serverInput.setText(config.server)
         deviceKeyInput.setText(config.deviceKey)
+        keywordsInput.setText(config.verificationKeywords.joinToString("\n"))
         enabledSwitch.isChecked = config.enabled
     }
 
@@ -130,6 +141,7 @@ class MainActivity : Activity() {
             server = serverInput.text.toString(),
             deviceKey = deviceKeyInput.text.toString(),
             enabled = enabledSwitch.isChecked,
+            verificationKeywords = keywordsInput.text.toString(),
         )
     }
 
@@ -157,7 +169,7 @@ class MainActivity : Activity() {
         val enabledText = if (config.enabled) "已开启" else "已关闭"
         val keyText = if (endpoint.deviceKey.isBlank()) "未填写" else "已填写"
 
-        statusText.text = "短信权限：$permissionText\n转发：$enabledText\nDevice key：$keyText\n请求地址：${endpoint.pushUrl}"
+        statusText.text = "短信权限：$permissionText\n转发：$enabledText\nDevice key：$keyText\n关键词：${config.verificationKeywords.size} 个\n请求地址：${endpoint.pushUrl}"
         logsText.text = AppLog.read(this).ifBlank { "暂无日志" }
     }
 
